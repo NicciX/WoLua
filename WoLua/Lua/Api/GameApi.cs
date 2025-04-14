@@ -9,6 +9,7 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 
 using MoonSharp.Interpreter;
 
+using PrincessRTFM.WoLua.Api;
 using PrincessRTFM.WoLua.Constants;
 using PrincessRTFM.WoLua.Game;
 using PrincessRTFM.WoLua.Lua.Api.Game;
@@ -35,6 +36,7 @@ public class GameApi: ApiBase {
 	public ChocoboApi Chocobo { get; private set; } = null!;
 	public ToastApi Toast { get; private set; } = null!;
 	public DalamudApi Dalamud { get; private set; } = null!;
+	public ChatApi Chat { get; set; } = null!;
 
 	#endregion
 
@@ -126,7 +128,7 @@ public class GameApi: ApiBase {
 	public unsafe bool HasMapFlag {
 		get {
 			AgentMap* map = AgentMap.Instance();
-			return map is not null && map->IsFlagMarkerSet > 0;
+			return map is not null && map->IsFlagMarkerSet;
 		}
 	}
 
@@ -134,7 +136,7 @@ public class GameApi: ApiBase {
 	public unsafe void ClearMapFlag() {
 		AgentMap* map = AgentMap.Instance();
 		if (map is not null)
-			map->IsFlagMarkerSet = 0;
+			map->IsFlagMarkerSet = false;
 	}
 
 	[LuaDoc("Sets the player's custom map flag marker to the given x/y coordinates in the current zone.",
@@ -144,7 +146,7 @@ public class GameApi: ApiBase {
 		AgentMap* map = AgentMap.Instance();
 		if (map is null)
 			return;
-		map->IsFlagMarkerSet = 0;
+		map->IsFlagMarkerSet = false;
 		map->SetFlagMapMarker(map->CurrentTerritoryId, map->CurrentMapId, x, y);
 	}
 
@@ -173,6 +175,12 @@ public class GameApi: ApiBase {
 
 	[LuaDoc("Returns an object holding the current Eorzean time as separate hours and minutes.")]
 	public EorzeanTime EorzeanTime => new();
+
+
+	//public string LastChat => WoLuaApi.LastChat;
+	//public string LastSender => WoLuaApi.LastSender;
+	//public string LastChn => WoLuaApi.LastChn;
+	//public uint LastTime => WoLuaApi.LastTime;
 
 	[LuaDoc("Returns a wrapper for the current weather in the current zone.",
 		"This wrapper provides the raw (internal) numeric (unsigned integer) ID of the weather, the short name, and a small description of what the weather \"looks\" like.")]

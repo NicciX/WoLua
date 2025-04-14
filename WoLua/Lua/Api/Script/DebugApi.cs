@@ -24,10 +24,11 @@ public class DebugApi: ApiBase {
 		"You can check `.PluginDebugBuild` to see if your script is running in a forced-debug environment.")]
 #if DEBUG
 	[SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Retain compatibility in the rest of the codebase with non-debug builds")]
-	public bool Enabled {
-		get => true;
-		set => _ = value;
-	}
+	//public bool Enabled {
+		//get => true;
+		//set => _ = value;
+	//}
+	public bool Enabled { get; set; } = false;
 #else
 	public bool Enabled { get; set; } = false;
 #endif
@@ -35,7 +36,7 @@ public class DebugApi: ApiBase {
 	[LuaDoc("Whether or not you are running a debug build of " + Plugin.Name + " itself.",
 		"This value is constant and determined by " + Plugin.Name + " when it is compiled.")]
 #if DEBUG
-	public static bool PluginDebugBuild => true;
+	public static bool PluginDebugBuild => false;
 #else
 	public static bool PluginDebugBuild => false;
 #endif

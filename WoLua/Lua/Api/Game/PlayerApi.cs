@@ -6,6 +6,7 @@ using System.Linq;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.Enums;
 
+using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 
@@ -196,6 +197,7 @@ public class PlayerApi: ApiBase, IWorldObjectWrapper {
 		"Only guaranteed to be valid if the player is on a DoL class. Otherwise, the value is indeterminate and may be meaningless.",
 		"This property is shorthand for `.Entity.MaxGp`.")]
 	public uint? MaxGp => this.Entity.MaxGp;
+	public unsafe uint GetGil() => InventoryManager.Instance()->GetGil();
 
 	#endregion
 
@@ -363,7 +365,7 @@ public class PlayerApi: ApiBase, IWorldObjectWrapper {
 		: null;
 
 	[LuaPlayerDoc("Whether the game considers the current character to be in motion.")]
-	public unsafe bool Moving => AgentMap.Instance() is not null && AgentMap.Instance()->IsPlayerMoving > 0;
+	public unsafe bool Moving => AgentMap.Instance() is not null && AgentMap.Instance()->IsPlayerMoving;
 
 	#endregion
 
