@@ -1,12 +1,7 @@
 # WoLua
 _Warrior of... Lua?_
 
-![GitHub build status](https://img.shields.io/github/actions/workflow/status/VariableVixen/WoLua/build.yml?logo=github)
-![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/VariableVixen/WoLua?label=version&color=informational)
-![GitHub last commit (branch)](https://img.shields.io/github/last-commit/VariableVixen/WoLua/master?label=updated)
-[![GitHub issues](https://img.shields.io/github/issues-raw/VariableVixen/WoLua?label=known%20issues)](https://github.com/VariableVixen/WoLua/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc)
-
-[![Support me!](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/V7V7IK9UU)
+My testing build of WoLua by VariableVixen.
 
 ## About
 [![License](https://img.shields.io/github/license/VariableVixen/WoLua?logo=github&color=informational&cacheSeconds=86400)](https://github.com/VariableVixen/WoLua/blob/master/LICENSE)
