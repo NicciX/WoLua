@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 
+using Dalamud.Plugin.Services;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface.Windowing;
@@ -23,6 +24,14 @@ using PrincessRTFM.WoLua.Lua;
 using PrincessRTFM.WoLua.Lua.Api.Game;
 using PrincessRTFM.WoLua.Ui;
 using PrincessRTFM.WoLua.Ui.Chat;
+using Dalamud.IoC;
+using PrincessRTFM.WoLua.Game;
+using PrincessRTFM.WoLua.Chat;
+using Dalamud.Game;
+
+using System.Reflection;
+using PrincessRTFM.WoLua.Api;
+using PrincessRTFM.WoLua.Ipc;
 
 namespace PrincessRTFM.WoLua;
 
@@ -30,9 +39,29 @@ public class Plugin: IDalamudPlugin {
 	public const InteropAccessMode TypeRegistrationMode = InteropAccessMode.BackgroundOptimized;
 	public const string Name = "WoLua";
 
+	public const string Prefix = "WoLua";
+	public const string PluginName = "Wolua";
+
+	[PluginService] internal static IDataManager Data { get; private set; } = null!;
+	[PluginService] internal static IGameInteropProvider Interop { get; private set; } = null!;
+	[PluginService] internal static IFramework Framework { get; private set; } = null!;
+	[PluginService] internal static IPluginLog Log { get; private set; } = null!;
+	[PluginService] internal static ICommandManager CmdManager { get; private set; } = null!;
+	[PluginService] internal static IChatGui Chat { get; private set; } = null!;
+	[PluginService] internal static ISigScanner Scanner { get; private set; } = null!;
+	internal static PluginCommandManager CommandManager { get; private set; } = null!;
+	internal static ServerChat ServerChat { get; private set; } = null!;
+
+	internal static WoLuaIpc WoLuaIpc { get; set; } = null!;
+
+	public static Plugin Instance { get; private set; } = null!;
+	//internal static IDalamudPlugin ChatAlerts { get; private set; } = null!;
+
 	public static string Command { get; } = $"/{Name.ToLower()}";
 
 	public string Version { get; init; }
+
+	
 
 	public SeString ShortStatus {
 		get => this.disposed ? null! : Service.StatusLine?.Text ?? string.Empty;
@@ -54,6 +83,8 @@ public class Plugin: IDalamudPlugin {
 	private readonly MainWindow mainWindow;
 	private readonly DebugWindow debugWindow;
 
+
+
 	static Plugin() {
 		UserData.RegisterAssembly(typeof(Plugin).Assembly, true);
 		Script.GlobalOptions.RethrowExceptionNested = true;
@@ -62,9 +93,13 @@ public class Plugin: IDalamudPlugin {
 
 	#region Initialisation and plugin setup
 
+	public WoLuaApi Api { get; }
+	
+	//public WoLuaProvider IpcProvider { get; }
+
 	public Plugin(IDalamudPluginInterface i) {
 		using MethodTimer logtimer = new();
-
+		Instance = this;
 		this.Version = FileVersionInfo.GetVersionInfo(i.AssemblyLocation.FullName).ProductVersion ?? "?.?.?";
 		if (i.Create<Service>(this, i.GetPluginConfig() ?? new PluginConfiguration()) is null)
 			throw new ApplicationException("Failed to initialise service container");
@@ -74,10 +109,22 @@ public class Plugin: IDalamudPlugin {
 			HelpMessage = $"The core {Name} command. Use alone to display the main interface and help window.",
 		});
 
+
+		ServerChat = new(Scanner);
+		CommandManager = new(this) {
+			ErrorHandler = ChatUtil.ShowPrefixedError
+		};
+		CommandManager.AddCommandHandlers();
+
 		this.mainWindow = new();
 		this.debugWindow = new();
 		this.Windows.AddWindow(this.mainWindow);
 		this.Windows.AddWindow(this.debugWindow);
+
+		this.Api = new WoLuaApi();
+
+		
+		//this.LastChat = "";
 
 		Service.Interface.UiBuilder.OpenConfigUi += this.ToggleConfigUi;
 		Service.Interface.UiBuilder.Draw += this.Windows.Draw;
@@ -85,12 +132,17 @@ public class Plugin: IDalamudPlugin {
 		Task.Run(this.delayedPluginSetup);
 	}
 
+
+
 	private void delayedPluginSetup() {
 		PlayerApi.InitialiseEmotes();
 		WeatherWrapper.LoadGameData();
 		MountWrapper.LoadGameData();
 		Service.ScriptManager.Rescan();
 		Service.DocumentationGenerator.Run();
+		
+		//Config = ChatAlertsConfig.Load();
+		
 	}
 
 	#endregion
@@ -297,6 +349,7 @@ public class Plugin: IDalamudPlugin {
 			Service.Log.Error(message);
 	}
 
+	
 	#endregion
 
 	public void NYI() => this.Error("This feature is not yet implemented.");
@@ -316,9 +369,11 @@ public class Plugin: IDalamudPlugin {
 			Service.ScriptManager.Dispose();
 			Service.Hooks.Dispose();
 			Service.Common?.Dispose();
+			//Service.WoLuaIpc.Dispose();
 			Service.Interface.UiBuilder.Draw -= this.Windows.Draw;
 			Service.Interface.UiBuilder.OpenConfigUi -= this.ToggleConfigUi;
 			Service.StatusLine.Remove();
+			CommandManager.Dispose();
 		}
 
 		Service.Log.Information($"[{LogTag.PluginCore}] {Name} unloaded successfully!");

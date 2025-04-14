@@ -8,6 +8,7 @@ using Dalamud.Plugin.Services;
 using PrincessRTFM.WoLua.Constants;
 using PrincessRTFM.WoLua.Game;
 using PrincessRTFM.WoLua.Lua.Docs;
+using PrincessRTFM.WoLua.Ipc;
 
 using XivCommon;
 
@@ -17,7 +18,6 @@ internal class Service {
 
 	[PluginService] public static Plugin Plugin { get; private set; } = null!;
 	[PluginService] public static PluginConfiguration Configuration { get; private set; } = null!;
-
 	[PluginService] public static IDalamudPluginInterface Interface { get; private set; } = null!;
 	[PluginService] public static IChatGui ChatGui { get; private set; } = null!;
 	[PluginService] public static IClientState ClientState { get; private set; } = null!;
@@ -40,6 +40,7 @@ internal class Service {
 	[PluginService] public static IToastGui Toast { get; private set; } = null!;
 	[PluginService] public static INotificationManager Notifications { get; private set; } = null!;
 
+	internal static WoLuaIpc WoLuaIpc { get; set; } = null!;
 	public static PlaySound Sounds { get; internal set; } = null!;
 	public static Hooks Hooks { get; internal set; } = null!;
 	public static IDtrBarEntry StatusLine { get; private set; } = null!;
@@ -47,6 +48,7 @@ internal class Service {
 	public static ScriptManager ScriptManager { get; private set; } = null!;
 	public static XivCommonBase Common { get; private set; } = null!;
 	public static ServerChat ServerChat { get; private set; } = null!;
+	
 
 	public Service() {
 		//Common = new(Interface);
@@ -57,6 +59,8 @@ internal class Service {
 		ScriptManager = new();
 		Sounds = new();
 		Hooks = new();
+		WoLuaIpc = new();
+		WoLuaIpc.RegisterFunctions();
 		StatusLine = DtrBar.Get($"{Plugin.Name} status", StatusText.Initialising);
 		StatusLine.Tooltip = StatusText.TooltipInitialising;
 		StatusLine.OnClick = ScriptManager.Rescan;
